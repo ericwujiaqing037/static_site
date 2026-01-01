@@ -1,0 +1,45 @@
+```python
+# This is NOT a header
+**This is NOT bold**
+
+
+<code>haskjdhaksdh
+    askjdnakjsd
+</code>
+<b>Hello <p>World</p></b>  ```
+
+---
+
+### 4. The "Void" Tags (Self-Closing)
+Most tags are pairs: `<p>` opens, `</p>` closes.
+Some tags are "Void." They are empty objects. They have attributes (props) but **no children** and **no closing tag**.
+
+You already wrote code for this! This is your `Tag.IMG` case.
+
+* **Image:** `<img src="cat.png" />`
+* **Line Break:** `<br />`
+* **Horizontal Rule:** `<hr />` (The line across the page)
+
+**Parser Logic:** If you try to give children (value) to a Void tag, your HTML is invalid.
+
+---
+
+### 5. Semantic Hierarchy
+HTML isn't just about "looking bold." It's about meaning.
+
+* `<h1>` is the Main Title (The root of the document meaning).
+* `<h2>` is a Section.
+* `<h3>` is a Subsection.
+* `<p>` is body text.
+
+**Why this matters:**
+Your parser needs to respect this hierarchy. A list `<ul>` shouldn't just be floating in space; it usually lives inside the `<body>` or a `<div>`.
+
+### Interactive Check
+To test if you see the "Matrix" of HTML structure, look at this simple snippet:
+
+```html
+<div>
+    <h1>Title</h1>
+    <p>Click <a href="...">here</a>.</p>
+</div>
