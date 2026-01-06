@@ -1,0 +1,17 @@
+
+
+Trace:
+markdown_to_html_node -> 
+        raw md text -> function: markdown_to_blocks -> list of md text blocks (correct)
+        for each blocks in resultant block:
+            get block type (correct)
+            if paragraph:
+                    md_paragraph_block_to_htmlNode(block)
+                        call -> md_terminal_block_to_htmlNode
+                                    call -> 
+
+
+blocktype:  paragraph
+> "I am in fact a Hobbit in all but size."
+>
+> -- J.R.R. Tolkien

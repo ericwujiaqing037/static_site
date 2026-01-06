@@ -1,5 +1,5 @@
 from enum import Enum
-from htmlnode import LeafNode, ParentNode, HTMLNode
+from htmlnode import LeafNode, ParentNode, HTMLNode, Tag
 import re
 
 class TextType(Enum):
@@ -15,10 +15,14 @@ DELIMITER_MAP = {
     TextType.BOLD: "**",
     TextType.ITALIC: "_",
     TextType.CODE: "`" , 
-    TextType.QUOTE: ">"
+    TextType.QUOTE: "> "
 }
    
 class TextNode():
+    '''
+    Corresponds to leaf elements of html 
+    '''
+
     def __init__(self, text, text_type, url = None):
         self.text = text
         self.text_type = text_type
@@ -33,20 +37,22 @@ class TextNode():
     def __repr__(self):
         return f"TextNode({self.text}, {self.text_type}, {self.url})"
     
+
+
 def text_node_to_html_node(text_node):
     match text_node.text_type:
         case TextType.TEXT:
             return LeafNode(tag = None, value = text_node.text)
         case TextType.BOLD:
-            return LeafNode(tag = "b", value = text_node.text)
+            return LeafNode(tag = Tag.BOLD, value = text_node.text)
         case TextType.ITALIC:
-            return LeafNode(tag = "i", value = text_node.text)
+            return LeafNode(tag = Tag.ITALIC, value = text_node.text)
         case TextType.CODE:
-            return LeafNode(tag = "code", value = text_node.text)
+            return LeafNode(tag = Tag.CODE, value = text_node.text)
         case TextType.LINK:
-            return LeafNode(tag = "link", value = text_node.text, props={"href": text_node.url})
+            return LeafNode(tag = Tag.HYPERLINK, value = text_node.text, props={"href": text_node.url})
         case TextType.IMAGE:
-            return LeafNode(tag = "img", value = "", props={"src":text_node.url, "alt": text_node.text})
+            return LeafNode(tag = Tag.IMG, value = "", props={"src":text_node.url, "alt": text_node.text})
         case _:
             raise Exception("Missing TextType")
 
@@ -62,8 +68,17 @@ def extract_regular_links_first_occurence(text):
 def extract_regular_links(text):
     return re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
 
-# splits nodes by its delimiter - only handles BOLD, Italic, Code
 def split_nodes_delimiter(old_nodes_list, delimiter, text_type):
+    '''
+    Extracts html inlines specified by delimiter from textnodes into seperate textnodes while preserving sequential order
+    
+    Args:
+        textnodes_list: a list of textnodes
+         
+    Returns:
+        resultant_nodes: a list of textnodes with specific inline tag/delimiter extracted, and sequential order of text preserved
+    '''
+
     resultant_nodes = []
     for node in old_nodes_list:
         if node.text_type != TextType.TEXT:
@@ -94,9 +109,17 @@ def split_nodes_delimiter(old_nodes_list, delimiter, text_type):
 
     return resultant_nodes            
 
-# recursively extract markdown syntax of image: ![Alt Text](URL) into nodes
 def split_nodes_image(old_nodes_list):
-    # recursively extract markdown syntax of image: ![Alt Text](URL) into nodes
+    '''
+    Extracts images from textnodes into seperate textnodes while preserving sequential order
+
+    Args:
+        textnodes_list: a list of textnodes 
+
+    Returns:
+        resultant_nodes: a list of textnodes with images (alt + links) extracted, and sequential order of text preserved
+    '''
+
     resultant_nodes = []
 
     for node in old_nodes_list:
@@ -132,13 +155,21 @@ def split_nodes_image(old_nodes_list):
     return resultant_nodes
 
   
-# recursively extract links from marked down text
-def split_nodes_link(old_nodes_list):
-    # recursively extract links from marked down text
+def split_nodes_link(textnodes_list):
+    '''
+    Extracts links from textnodes into seperate textnodes while preserving sequential order
+
+    Args:
+        textnodes_list: a list of textnodes 
+
+    Returns:
+        resultant_nodes: a list of textnodes with url links extracted, and sequential order of text preserved
+    '''
+
     resultant_nodes = []
-    for node in old_nodes_list:
+    for node in textnodes_list:
          
-        if node.text_type != TextType.TEXT: # this function only extracts links from text nodes
+        if node.text_type != TextType.TEXT: 
             resultant_nodes.append(node)
             continue
         
@@ -168,10 +199,20 @@ def split_nodes_link(old_nodes_list):
     
     return resultant_nodes
 
-# all in one function that converts raw_markdown text into textnodes (order preserved)
-# returns a list of text nodes
-def text_to_textnodes(raw_markdown_text):
-    parentNode = TextNode(raw_markdown_text, TextType.TEXT)
+
+def text_to_textnodes(terminal_block_md_text: str):
+    '''
+    Converts input text into list of textNodes that follows the same sequential order 
+
+    Args:
+        terminal_block_md_text: terminal block level markdown text whereby only inline elements are contained
+
+    Returns:
+        list of textNode arrange in the same sequential order as the input terminal_block_md_text
+    '''
+
+    parentNode = TextNode(terminal_block_md_text, TextType.TEXT)
+
     returning_nodes = [parentNode]
 
     for textType in TextType:

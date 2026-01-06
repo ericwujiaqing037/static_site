@@ -16,6 +16,12 @@ class Tag(Enum):
     SPAN = "span"
     DIV = "div"
     IMG = "img"
+    CODE = "code"
+    QUOTE = "blockquote"
+    ORDERED_LIST = "ol"
+    UNORDERED_LIST = "ul"
+    LIST_ITEM = "li"
+    PREFORMATTED = "pre"
 
 class HTMLNode:
     def __init__(self, tag=None, value=None, children=None, props=None):
@@ -36,10 +42,16 @@ class HTMLNode:
         return props_html
 
     def __repr__(self):
-        return f"HTMLNode({self.tag}, {self.value}, children: {self.children}, {self.props})"
+        return f"HTMLNode({self.tag.value}, {self.value}, children: {self.children}, {self.props})"
 
 
 class ParentNode(HTMLNode):
+    '''
+    Represents a 'Branch' in the HTML tree. 
+    It contains a list of 'children' nodes but holds no raw text itself.
+    Used for structural tags like <div>, <p>, <ul>, etc.
+    '''    
+
     def __init__(self, tag, children, value = None , props=None):
         super().__init__(tag, value, children, props)
 
@@ -50,15 +62,20 @@ class ParentNode(HTMLNode):
         res = ""
         
         for child in self.children:
-            if not child.value and child.children is None:
-                raise ValueError("Child missing value" + " " + child.tag)
-            
+            if not child.value and child.children is None and child.props is None:
+                raise ValueError("Child missing value" + " " + child.tag.value)
+            if child is None:
+                raise ValueError("Child is none")
             res += child.to_html()
         
-        return f"<{self.tag}>" + res + f"</{self.tag}>"
+        return f"<{self.tag.value}>" + res + f"</{self.tag.value}>"
 
     
 class LeafNode(HTMLNode):
+    '''
+    Represents a 'Leaf' (endpoint) in the HTML tree.
+    It holds raw data (text value or image props) and cannot have children.
+    '''
 
     def __init__(self, tag, value, props=None):
         super().__init__(tag, value, children= None, props = props)
@@ -67,6 +84,8 @@ class LeafNode(HTMLNode):
         if self.value is None and self.tag != Tag.IMG and self.tag != Tag.HYPERLINK:
             raise ValueError("Value is None: All leaf nodes must have value")
         
+        safe_props = self.props or {}
+
         match self.tag: 
             case None:
                 return self.value
