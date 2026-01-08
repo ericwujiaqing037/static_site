@@ -38,9 +38,16 @@ def generate_page(from_path:Path , template_path:Path, dest_path:Path):
     template = template_path.read_text(encoding="utf-8")
 
     md_title = extract_title(markdown_txt)
-    converted_html = markdown_to_html_node(markdown_txt).to_html()
 
+    converted_html = markdown_to_html_node(markdown_txt).to_html()
     updated_template = template.replace("{{ Title }}", md_title).replace("{{ Content }}", converted_html)
+
+    updated_link = 'href="{basepath}'
+    updated_template = updated_template.replace("href=\"/", updated_link)
+
+    updated_src_path = 'src="{basepath}'
+    updated_template = updated_template.replace('src="/', updated_src_path)
+
     dest_path.parent.mkdir(parents=True, exist_ok=True)
 
     dest_path.write_text(updated_template, encoding="utf-8")
