@@ -1,4 +1,5 @@
 from enum import Enum
+import html
 
 class Tag(Enum):
     HTML = "html"
@@ -85,15 +86,16 @@ class LeafNode(HTMLNode):
             raise ValueError("Value is None: All leaf nodes must have value")
         
         safe_props = self.props or {}
-
+        # safe_value = html.escape(self.value, quote=True)
+        safe_value = self.value
         match self.tag: 
             case None:
-                return self.value
+                return safe_value
 
             case Tag.HYPERLINK:
                 safe_props = self.props or {}
                 return (f"<a href=\"{safe_props["href"]}\">" 
-                        + f"{self.value}"
+                        + f"{safe_value}"
                         + f"</a>"
                 )
             case Tag.IMG:
@@ -101,6 +103,6 @@ class LeafNode(HTMLNode):
             
             case _:
                 return ( f"<{self.tag.value}>"
-                        + f"{self.value}"
+                        + f"{safe_value}"
                         + f"</{self.tag.value}>"
                 )
